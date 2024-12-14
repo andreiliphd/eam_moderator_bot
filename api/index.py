@@ -23,7 +23,7 @@ def home():
     ssl=True
     )    
     r.set(time.time(), str(data))
-    bot.delete_message(data['message']['chat.id'], data['message']['message_id'])
+    bot.delete_message(data['message']['chat']['id'], data['message']['message_id'])
     return jsonify(data)
 
 @app.route('/about')
