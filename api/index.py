@@ -42,9 +42,12 @@ def do():
     tmp = {}
     values = r.mget(keys)
     for i in range(len(keys)):
-        tmp[values[i]] = {'callback_data': keys[i]}
-    tmp['delete'] = {'callback_data': 'delete_all'}
-    markup = quick_markup(tmp, row_width=2)
+        tmp[keys[i]] = {'text': values[i],'callback_data': keys[i]}
+        result.append(tmp)
+    tmp['delete'] = {'text': "Удалить остальные", 'callback_data': 'delete_all'}
+    result.append(tmp)
+    out = telebot.types.InlineKeyboardMarkup(keyboard=result, row_width=3)
+    markup = quick_markup(out, row_width=2)
     bot.send_message(chat_id = chat, text = "Одобрите посты: ", reply_markup = markup)
     r.get(data['update_id'])
     return jsonify(data)
