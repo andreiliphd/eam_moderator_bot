@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 
 load_dotenv()  # take environment variables from .env.
-bot = telebot.TeleBot(os.getenv(API_TOKEN))
+bot = telebot.TeleBot(os.getenv("API_TOKEN"))
 
 
 app = Flask(__name__)
