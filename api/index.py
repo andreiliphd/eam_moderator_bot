@@ -43,10 +43,8 @@ def do():
     values = r.mget(keys)
     for i in range(len(keys)):
         tmp[values[i]] = {'callback_data': keys[i]}
-        result.append(tmp)
     tmp['delete'] = {'callback_data': 'delete_all'}
-    result.append(tmp)
-    markup = quick_markup(result, row_width=2)
+    markup = quick_markup(tmp, row_width=2)
     bot.send_message(chat_id = chat, text = "Одобрите посты: ", reply_markup = markup)
     r.get(data['update_id'])
     return jsonify(data)
