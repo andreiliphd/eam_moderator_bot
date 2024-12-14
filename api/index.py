@@ -3,11 +3,12 @@ import redis
 from flask import Flask, request, jsonify
 import os
 import time
-
-
+import telebot
 from dotenv import load_dotenv
 
+
 load_dotenv()  # take environment variables from .env.
+bot = telebot.TeleBot(os.getenv(API_TOKEN))
 
 
 app = Flask(__name__)
@@ -22,6 +23,7 @@ def home():
     )    
     r.set(time.time(), str(request.json))
     data = request.json
+    bot.delete_message(data.message.chat.id, data.message.message_id)
     return jsonify(data)
 
 @app.route('/about')
