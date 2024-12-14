@@ -27,7 +27,7 @@ def home():
     bot.delete_message(data['message']['chat']['id'], data['message']['message_id'])
     return jsonify(data)
 
-@app.route('/manage')
+@app.route('/manage', methods=['GET', 'POST'])
 def do():
     data = request.json
     r = redis.Redis(
