@@ -11,7 +11,6 @@ load_dotenv()  # take environment variables from .env.
 
 bot = telebot.TeleBot(os.getenv("API_TOKEN"))
 app = Flask(__name__)
-chat = ""
 
 @app.route('/', methods=['GET', 'POST'])
 def home(): 
@@ -55,7 +54,7 @@ def do():
     'Facebook': {'url': 'https://facebook.com'},
     'Back': {'callback_data': 'whatever'}
     }, row_width=2)
-    bot.send_message(chat_id = chat, text = "Одобрите посты: ", reply_markup = markup)
+    bot.send_message(chat_id = os.getenv('CHAT_ID'), text = "Одобрите посты: ", reply_markup = markup)
     r.get(data['update_id'])
     return jsonify(data)
 
