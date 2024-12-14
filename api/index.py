@@ -5,7 +5,7 @@ import os
 import time
 import telebot
 from dotenv import load_dotenv
-
+from telebot.util import quick_markup
 
 load_dotenv()  # take environment variables from .env.
 
@@ -38,10 +38,14 @@ def do():
     )    
     text = {"inline_keyboard": []}
     keys = r.keys('*')
+    tmp = {}
     values = r.mget(keys)
     for i in range(len(keys)):
-        tmp = text['inline_keyboard'].append([{'callback_data': keys[i], 'text': values[i]}])
-    bot.send_message(chat_id = chat, reply_markup = text)
+        tmp[values[i]] = {'callback_data': keys[i]}
+    tmp['Удалить остальное '] = {'callback_data': 'delete_all'}
+
+    markup = quick_markup(tmp, row_width=2)
+    bot.send_message(chat_id = chat, text = "Одобрите посты: ", reply_markup = markup)
     r.get(data['update_id'])
     return jsonify(data)
 
