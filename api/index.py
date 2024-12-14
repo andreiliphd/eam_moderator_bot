@@ -47,8 +47,7 @@ def do():
     tmp['delete'] = {'text': "Удалить остальные", 'callback_data': 'delete_all'}
     result.append(tmp)
     out = telebot.types.InlineKeyboardMarkup(keyboard=result, row_width=3)
-    markup = quick_markup(out, row_width=2)
-    bot.send_message(chat_id = chat, text = "Одобрите посты: ", reply_markup = markup)
+    bot.send_message(chat_id = chat, text = "Одобрите посты: ", reply_markup = out)
     r.get(data['update_id'])
     return jsonify(data)
 
