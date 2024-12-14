@@ -22,7 +22,7 @@ def home():
     password=os.getenv("PASSWORD"),
     ssl=True
     )    
-    r.set(time.time(), str(data))
+    r.set(data['update_id'], data['message']['from']['username'] + ' - ' + data['message']['text'])
     bot.delete_message(data['message']['chat']['id'], data['message']['message_id'])
     return jsonify(data)
 
