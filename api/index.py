@@ -15,15 +15,15 @@ app = Flask(__name__)
 
 @app.route('/', methods=['GET', 'POST'])
 def home(): 
+    data = request.json
     r = redis.Redis(
     host=os.getenv("HOST"),
     port=6379,
     password=os.getenv("PASSWORD"),
     ssl=True
     )    
-    r.set(time.time(), str(request.json))
-    data = request.json
-    bot.delete_message(data.message.chat.id, data.message.message_id)
+    r.set(time.time(), str(data))
+    bot.delete_message(data['message']['chat.id'], data['message']['message_id'])
     return jsonify(data)
 
 @app.route('/about')
