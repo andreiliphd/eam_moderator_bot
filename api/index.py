@@ -38,13 +38,15 @@ def do():
     )    
     text = {"inline_keyboard": []}
     keys = r.keys('*')
+    result = []
     tmp = {}
     values = r.mget(keys)
     for i in range(len(keys)):
         tmp[values[i]] = {'callback_data': keys[i]}
-    tmp['Удалить остальное '] = {'callback_data': 'delete_all'}
-
-    markup = quick_markup(tmp, row_width=2)
+        result.append(tmp)
+    tmp['delete'] = {'callback_data': 'delete_all'}
+    result.append(tmp)
+    markup = quick_markup(result, row_width=2)
     bot.send_message(chat_id = chat, text = "Одобрите посты: ", reply_markup = markup)
     r.get(data['update_id'])
     return jsonify(data)
