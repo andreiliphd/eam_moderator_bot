@@ -40,7 +40,7 @@ def do():
     keys = r.keys('*')
     values = r.mget(keys)
     for i in range(len(keys)):
-        tmp = text['inline_keyboard'][0].append([{'callback_data': keys[i], 'text': values[i]}])
+        tmp = text['inline_keyboard'].append([{'callback_data': keys[i], 'text': values[i]}])
     bot.send_message(chat_id = chat, reply_markup = text)
     r.get(data['update_id'])
     return jsonify(data)
