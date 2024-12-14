@@ -1,6 +1,2 @@
 Flask==3.0.3
-<<<<<<< HEAD
 pprint3x
-=======
-pprint3x
->>>>>>> df36c3176267d117126de3b05c8352d7e62a1228
