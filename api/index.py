@@ -1,7 +1,6 @@
 import pprint
 from flask import Flask, request, jsonify
 
-app = Flask(__name__)
 
 class LoggingMiddleware(object):
     def __init__(self, app):
