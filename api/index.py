@@ -50,7 +50,8 @@ def do():
         result.append(tmp)
     tmp = [telebot.types.InlineKeyboardButton({'text': "Удалить остальные", 'callback_data': 'delete_all'})]
     result.append(tmp)
-    bot.send_message(chat_id = data['message']['chat']['id'], text = "Одобрите посты: ", reply_markup = result)
+    blow = telebot.types.InlineKeyboardMarkup(keyboard=result, row_width=3)
+    bot.send_message(chat_id = data['message']['chat']['id'], text = "Одобрите посты: ", reply_markup = blow)
     r.get(data['update_id'])
     return jsonify(data)
 
