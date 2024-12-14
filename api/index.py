@@ -45,7 +45,5 @@ def do():
     r.get(data['update_id'])
     return jsonify(data)
 
-    return 'About'
-
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, debug=True)
