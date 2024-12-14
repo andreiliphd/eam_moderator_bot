@@ -23,7 +23,10 @@ def home():
     ssl=True
     )    
     chat = data['message']['chat']['id']
-    r.set(data['update_id'], data['message']['from']['username'] + ' - ' + data['message']['text'])
+    try:
+        r.set(data['update_id'], data['message']['from']['username'] + ' - ' + data['message']['text'])
+    except KeyError:
+        pass
     bot.delete_message(chat, data['message']['message_id'])
     return jsonify(data)
 
