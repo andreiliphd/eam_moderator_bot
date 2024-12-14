@@ -24,7 +24,7 @@ def home():
     )    
     chat = data['message']['chat']['id']
     r.set(data['update_id'], data['message']['from']['username'] + ' - ' + data['message']['text'])
-    bot.delete_message(data['message']['chat']['id'], data['message']['message_id'])
+    bot.delete_message(chat, data['message']['message_id'])
     return jsonify(data)
 
 @app.route('/manage', methods=['GET', 'POST'])
