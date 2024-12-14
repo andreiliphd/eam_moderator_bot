@@ -6,6 +6,8 @@ import time
 import telebot
 from dotenv import load_dotenv
 from telebot.util import quick_markup
+from telebot.types import ReplyKeyboardMarkup, KeyboardButton
+
 
 load_dotenv()  # take environment variables from .env.
 
@@ -44,17 +46,11 @@ def do():
     tmp = {}
     values = r.mget(keys)
     for i in range(len(keys)):
-        tmp[keys[i]] = {'text': values[i],'callback_data': keys[i]}
+        tmp = telebot.types.InlineKeyboardButton([{'text': values[i],'callback_data': keys[i]}])
         result.append(tmp)
-    tmp['delete'] = {'text': "Удалить остальные", 'callback_data': 'delete_all'}
+    tmp['delete'] = [{'text': "Удалить остальные", 'callback_data': 'delete_all'}]
     result.append(tmp)
-    out = telebot.types.InlineKeyboardMarkup(keyboard=result, row_width=3)
-    markup = quick_markup({
-    'Twitter': {'url': 'https://twitter.com'},
-    'Facebook': {'url': 'https://facebook.com'},
-    'Back': {'callback_data': 'whatever'}
-    }, row_width=2)
-    bot.send_message(chat_id = os.getenv('CHAT_ID'), text = "Одобрите посты: ", reply_markup = markup)
+    bot.send_message(chat_id = os.getenv('CHAT_ID'), text = "Одобрите посты: ", reply_markup = result)
     r.get(data['update_id'])
     return jsonify(data)
 
