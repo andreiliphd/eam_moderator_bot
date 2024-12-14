@@ -2,3 +2,4 @@ Flask==3.0.3
 python-dotenv
 pprint3x
 upstash-redis
+redis
