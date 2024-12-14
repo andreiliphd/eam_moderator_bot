@@ -48,7 +48,7 @@ def do():
     for i in range(len(keys)):
         tmp = telebot.types.InlineKeyboardButton([{'text': values[i],'callback_data': keys[i]}])
         result.append(tmp)
-    tmp['delete'] = [{'text': "Удалить остальные", 'callback_data': 'delete_all'}]
+    tmp = telebot.types.InlineKeyboardButton([{'text': "Удалить остальные", 'callback_data': 'delete_all'}])
     result.append(tmp)
     bot.send_message(chat_id = os.getenv('CHAT_ID'), text = "Одобрите посты: ", reply_markup = result)
     r.get(data['update_id'])
