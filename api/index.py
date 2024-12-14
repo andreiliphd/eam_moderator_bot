@@ -40,7 +40,7 @@ def do():
     password=os.getenv("PASSWORD"),
     ssl=True
     )    
-    text = {"inline_keyboard": []}
+    r.set("internal_view", str(data))
     keys = r.keys('*')
     result = []
     tmp = {}
