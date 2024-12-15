@@ -47,7 +47,7 @@ def do():
     result = []
     for i in range(len(keys)):
         result.append(bot.types.InlineKeyboardButton(text = values[i], callback_data = keys[i]))
-    markup.add(result)
+    markup.add(result, row_width = 1)
     bot.send_message(chat_id = data['message']['chat']['id'], text = "Одобрите посты: ", reply_markup = markup)
     r.get(data['update_id'])
     return jsonify(data)
