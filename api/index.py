@@ -42,7 +42,7 @@ def do():
     )    
     r.set("internal_view", str(data))
     keys = r.keys('*')
-    markup_template = '{"inline_keyboard":[[{"text":"Twitter","url":"https:\\/\\/twitter.com"},{"text":"Facebook","url":"https:\\/\\/facebook.com"}],[{"text":"Back","callback_data":"whatever"}]]}'
+    markup_template = {"inline_keyboard":[[{"text":"Twitter","url":"https:\\/\\/twitter.com"},{"text":"Facebook","url":"https:\\/\\/facebook.com"}],[{"text":"Back","callback_data":"whatever"}]]}
     markup = []
     values = r.mget(keys)
     for i in range(len(keys)):
