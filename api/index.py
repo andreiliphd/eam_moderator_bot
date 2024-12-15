@@ -12,6 +12,7 @@ from telebot.types import ReplyKeyboardMarkup, KeyboardButton
 load_dotenv()  # take environment variables from .env.
 
 bot = telebot.TeleBot(os.getenv("API_TOKEN"))
+bot_1 = telebot.TeleBot(os.getenv("API_TOKEN_2"))
 app = Flask(__name__)
 
 @app.route('/', methods=['GET', 'POST'])
@@ -46,7 +47,7 @@ def do():
     values = r.mget(keys)
     for i in range(len(keys)):
         pass #markup.add(telebot.types.InlineKeyboardButton(text = values[i], callback_data = keys[i]), row_width = 1)
-    bot.send_message(chat_id = 957931698, text = "Одобрите посты: ", reply_markup = markup_template)
+    bot_1.send_message(chat_id = 957931698, text = "Одобрите посты: ", reply_markup = markup_template)
     r.get(data['update_id'])
     return jsonify(data)
 
