@@ -42,11 +42,11 @@ def do():
     )    
     r.set("internal_view", str(data))
     keys = r.keys('*')
-    markup = bot.types.InlineKeyboardMarkup()
+    markup = telebot.types.InlineKeyboardMarkup()
     values = r.mget(keys)
     result = []
     for i in range(len(keys)):
-        result.append(bot.types.InlineKeyboardButton(text = values[i], callback_data = keys[i]))
+        result.append(telebot.types.InlineKeyboardButton(text = values[i], callback_data = keys[i]))
     markup.add(result, row_width = 1)
     bot.send_message(chat_id = data['message']['chat']['id'], text = "Одобрите посты: ", reply_markup = markup)
     r.get(data['update_id'])
