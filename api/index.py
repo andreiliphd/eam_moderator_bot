@@ -43,11 +43,12 @@ def do():
     )    
     r.set(time.time(), str(data))
     keys = r.keys('*')
-    markup_template = '{"inline_keyboard":[[{"text":"Twitter","url":"twitter.com"},{"text":"Facebook","url":"facebook.com"}],[{"text":"Back","callback_data":"whatever"}]]}'
+    markup_template = {"inline_keyboard":[]}
     values = r.mget(keys)
     for i in range(len(keys)):
-        pass #markup.add(telebot.types.InlineKeyboardButton(text = values[i], callback_data = keys[i]), row_width = 1)
-    bot_1.send_message(chat_id = 957931698, text = "Одобрите посты: ", reply_markup = markup_template)
+        markup_template['inline_keyboard'].append([{"text": values[i], "callback_data": keys[i]}])
+    markup_template['inline_keyboard'].append([{"text": "Удалить остальное", "callback_data": "delete_all"}])
+    bot_1.send_message(chat_id = data['message']['chat']['id'], text = "Одобрите посты: ", reply_markup = markup_template)
     r.get(data['update_id'])
     return jsonify(data)
 
