@@ -46,9 +46,10 @@ def do():
     tmp = {}
     values = r.mget(keys)
     for i in range(len(keys)):
-        tmp = [telebot.types.InlineKeyboardButton({'text': values[i],'callback_data': keys[i]})]
+        tmp = [telebot.types.InlineKeyboardButton(text = values[i], callback_data = keys[i])]
         result.append(tmp)
-    tmp = [telebot.types.InlineKeyboardButton({'text': "Удалить остальные", 'callback_data': 'delete_all'})]
+        tmp = {}
+    tmp = [telebot.types.InlineKeyboardButton(text = "Удалить остальные", callback_data = 'delete_all')]
     result.append(tmp)
     blow = telebot.types.InlineKeyboardMarkup(keyboard=result, row_width=3)
     bot.send_message(chat_id = data['message']['chat']['id'], text = "Одобрите посты: ", reply_markup = blow)
