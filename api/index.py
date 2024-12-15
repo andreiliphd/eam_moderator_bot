@@ -13,7 +13,7 @@ from telebot.types import ReplyKeyboardMarkup, KeyboardButton
 load_dotenv()  # take environment variables from .env.
 
 bot = telebot.TeleBot(os.getenv("API_TOKEN"))
-bot_1 = telebot.TeleBot(os.getenv("API_TOKEN_2"))
+bot_2 = telebot.TeleBot(os.getenv("API_TOKEN_2"))
 app = Flask(__name__)
 
 @app.route('/', methods=['GET', 'POST'])
@@ -44,14 +44,12 @@ def do():
     )    
     r.set(time.time(), str(data))
     keys = r.keys('*')
-    markup_template = {"inline_keyboard":[]}
     values = r.mget(keys)
-    #for i in range(len(keys)):
-    #    markup_template['inline_keyboard'].append([{"text": values[i], "callback_data": keys[i]}])
     markup = telebot.types.InlineKeyboardMarkup()
-    btn_my_site= telebot.types.InlineKeyboardButton(text='Наш сайт', url='https://habrahabr.ru')
-    markup.add(btn_my_site)
-    bot_1.send_message(chat_id = data['message']['chat']['id'], text = "Одобрите посты: ", reply_markup = markup)
+    for i in range(len(keys)):
+        btn_my_site= telebot.types.InlineKeyboardButton(text=values[i], callback_data=keys[i])
+        markup.add(btn_my_site)
+    bot_2.send_message(chat_id = data['message']['chat']['id'], text = "Одобрите посты: ", reply_markup = markup)
     return jsonify(data)
 
 if __name__ == '__main__':
