@@ -48,7 +48,7 @@ def do():
     for i in range(len(keys)):
         markup_template['inline_keyboard'].append([{"text": values[i], "callback_data": keys[i]}])
     markup_template['inline_keyboard'].append([{"text": "Удалить остальное", "callback_data": "delete_all"}])
-    bot_1.send_message(chat_id = data['message']['chat']['id'], text = "Одобрите посты: ", reply_markup = markup_template)
+    bot_1.send_message(chat_id = data['message']['chat']['id'], text = "Одобрите посты: ", reply_markup = str(markup_template))
     r.get(data['update_id'])
     return jsonify(data)
 
