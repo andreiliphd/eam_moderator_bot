@@ -39,13 +39,11 @@ def do():
     data = request.json
     keys = r.keys('*')
     values = r.mget(keys)
-    result = []
-    markup = telebot.types.InlineKeyboardMarkup()
     for i in range(len(keys)):
+        markup = telebot.types.InlineKeyboardMarkup()
         btn_my_site= telebot.types.InlineKeyboardButton(text=values[i], callback_data=keys[i])
-        result.append(btn_my_site)
-    markup.add(*result)
-    bot_2.send_message(chat_id = data['message']['chat']['id'], text = "Одобрите посты: ", reply_markup = markup)
+        markup.add(btn_my_site)    
+        bot_2.send_message(chat_id = data['message']['chat']['id'], text = "Одобрите пост: ", reply_markup = markup)
     return jsonify(data)
 
 if __name__ == '__main__':
