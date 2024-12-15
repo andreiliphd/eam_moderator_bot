@@ -42,7 +42,7 @@ def do():
     )    
     r.set("internal_view", str(data))
     keys = r.keys('*')
-    markup_template = {"inline_keyboard":[[{"text":"Twitter","url":"https:\\/\\/twitter.com"},{"text":"Facebook","url":"https:\\/\\/facebook.com"}],[{"text":"Back","callback_data":"whatever"}]]}
+    markup_template = {"inline_keyboard":[[{"text":"Twitter","url":"twitter.com"},{"text":"Facebook","url":"facebook.com"}],[{"text":"Back","callback_data":"whatever"}]]}
     values = r.mget(keys)
     for i in range(len(keys)):
         pass #markup.add(telebot.types.InlineKeyboardButton(text = values[i], callback_data = keys[i]), row_width = 1)
