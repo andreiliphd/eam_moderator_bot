@@ -42,17 +42,11 @@ def do():
     )    
     r.set("internal_view", str(data))
     keys = r.keys('*')
-    result = []
-    tmp = {}
+    markup = telebot.types.InlineKeyboardMarkup()
     values = r.mget(keys)
     for i in range(len(keys)):
-        tmp = [telebot.types.InlineKeyboardButton(text = values[i], callback_data = keys[i])]
-        result.append(tmp)
-        tmp = {}
-    tmp = [telebot.types.InlineKeyboardButton(text = "Удалить остальные", callback_data = 'delete_all')]
-    result.append(tmp)
-    blow = telebot.types.InlineKeyboardMarkup(keyboard=result, row_width=3)
-    bot.send_message(chat_id = data['message']['chat']['id'], text = "Одобрите посты: ", reply_markup = blow)
+        markup.add(values[i], callback_data = keys[i])
+    bot.send_message(chat_id = data['message']['chat']['id'], text = "Одобрите посты: ", reply_markup = markup)
     r.get(data['update_id'])
     return jsonify(data)
 
