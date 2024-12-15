@@ -1,7 +1,7 @@
 python-dotenv
 pprint3x
 upstash-redis
-pyTelegramBotAPI
+python-telegram-bot
 redis
 flask[async]~=2.3.2
 uvicorn~=0.23.2
