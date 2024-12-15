@@ -1,13 +1,30 @@
+#!/usr/bin/env python
+# This program is dedicated to the public domain under the CC0 license.
+# pylint: disable=import-error,unused-argument
+"""
+Simple example of a bot that uses a custom webhook setup and handles custom updates.
+For the custom webhook setup, the libraries `starlette` and `uvicorn` are used. Please install
+them as `pip install starlette~=0.20.0 uvicorn~=0.23.2`.
+Note that any other `asyncio` based web server framework can be used for a custom webhook setup
+just as well.
+
+Usage:
+Set bot Token, URL, admin CHAT_ID and PORT after the imports.
+You may also need to change the `listen` value in the uvicorn configuration to match your setup.
+Press Ctrl-C on the command line or send a signal to the process to stop the bot.
+"""
 import asyncio
 import html
-import os
 import logging
+import os
 from dataclasses import dataclass
 from http import HTTPStatus
 
 import uvicorn
-from asgiref.wsgi import WsgiToAsgi
-from flask import Flask, Response, abort, make_response, request
+from starlette.applications import Starlette
+from starlette.requests import Request
+from starlette.responses import PlainTextResponse, Response
+from starlette.routing import Route
 
 from telegram import Update
 from telegram.constants import ParseMode
@@ -63,9 +80,9 @@ class CustomContext(CallbackContext[ExtBot, dict, dict, dict]):
 
 async def start(update: Update, context: CustomContext) -> None:
     """Display a message with instructions on how to use this bot."""
-    payload_url = html.escape(f"{os.getenv("URL")}/submitpayload?user_id=<your user id>&payload=<payload>")
+    payload_url = html.escape(f"{URL}/submitpayload?user_id=<your user id>&payload=<payload>")
     text = (
-        f"To check if the bot is still running, call <code>{os.getenv("URL")}/healthcheck</code>.\n\n"
+        f"To check if the bot is still running, call <code>{URL}/healthcheck</code>.\n\n"
         f"To post a custom update, call <code>{payload_url}</code>."
     )
     await update.message.reply_html(text=text)
@@ -81,16 +98,16 @@ async def webhook_update(update: WebhookUpdate, context: CustomContext) -> None:
         f"The user {chat_member.user.mention_html()} has sent a new payload. "
         f"So far they have sent the following payloads: \n\n• <code>{combined_payloads}</code>"
     )
-    await context.bot.send_message(chat_id=os.getenv("ADMIN_CHAT_ID"), text=text, parse_mode=ParseMode.HTML)
+    await context.bot.send_message(chat_id=ADMIN_CHAT_ID, text=text, parse_mode=ParseMode.HTML)
 
 
-async def app() -> None:
+async def main() -> None:
     """Set up PTB application and a web application for handling the incoming requests."""
     context_types = ContextTypes(context=CustomContext)
     # Here we set updater to None because we want our custom webhook server to handle the updates
     # and hence we don't need an Updater instance
     application = (
-        Application.builder().token(os.getTOKEN).updater(None).context_types(context_types).build()
+        Application.builder().token(TOKEN).updater(None).context_types(context_types).build()
     )
 
     # register handlers
@@ -101,47 +118,52 @@ async def app() -> None:
     await application.bot.set_webhook(url=f"{URL}/telegram", allowed_updates=Update.ALL_TYPES)
 
     # Set up webserver
-    flask_app = Flask(__name__)
-
-    @flask_app.post("/telegram")  # type: ignore[misc]
-    async def telegram() -> Response:
+    async def telegram(request: Request) -> Response:
         """Handle incoming Telegram updates by putting them into the `update_queue`"""
-        await application.update_queue.put(Update.de_json(data=request.json, bot=application.bot))
-        return Response(status=HTTPStatus.OK)
+        await application.update_queue.put(
+            Update.de_json(data=await request.json(), bot=application.bot)
+        )
+        return Response()
 
-    @flask_app.route("/submitpayload", methods=["GET", "POST"])  # type: ignore[misc]
-    async def custom_updates() -> Response:
+    async def custom_updates(request: Request) -> PlainTextResponse:
         """
         Handle incoming webhook updates by also putting them into the `update_queue` if
         the required parameters were passed correctly.
         """
         try:
-            user_id = int(request.args["user_id"])
-            payload = request.args["payload"]
+            user_id = int(request.query_params["user_id"])
+            payload = request.query_params["payload"]
         except KeyError:
-            abort(
-                HTTPStatus.BAD_REQUEST,
-                "Please pass both `user_id` and `payload` as query parameters.",
+            return PlainTextResponse(
+                status_code=HTTPStatus.BAD_REQUEST,
+                content="Please pass both `user_id` and `payload` as query parameters.",
             )
         except ValueError:
-            abort(HTTPStatus.BAD_REQUEST, "The `user_id` must be a string!")
+            return PlainTextResponse(
+                status_code=HTTPStatus.BAD_REQUEST,
+                content="The `user_id` must be a string!",
+            )
 
         await application.update_queue.put(WebhookUpdate(user_id=user_id, payload=payload))
-        return Response(status=HTTPStatus.OK)
+        return PlainTextResponse("Thank you for the submission! It's being forwarded.")
 
-    @flask_app.get("/healthcheck")  # type: ignore[misc]
-    async def health() -> Response:
+    async def health(_: Request) -> PlainTextResponse:
         """For the health endpoint, reply with a simple plain text message."""
-        response = make_response("The bot is still running fine :)", HTTPStatus.OK)
-        response.mimetype = "text/plain"
-        return response
+        return PlainTextResponse(content="The bot is still running fine :)")
 
+    starlette_app = Starlette(
+        routes=[
+            Route("/telegram", telegram, methods=["POST"]),
+            Route("/healthcheck", health, methods=["GET"]),
+            Route("/submitpayload", custom_updates, methods=["POST", "GET"]),
+        ]
+    )
     webserver = uvicorn.Server(
         config=uvicorn.Config(
-            app=WsgiToAsgi(flask_app),
+            app=starlette_app,
             port=PORT,
             use_colors=False,
-            host="127.0.0.1",
+            host="0.0.0.0",
         )
     )
 
@@ -153,4 +175,4 @@ async def app() -> None:
 
 
 if __name__ == "__main__":
-    asyncio.run(app())
+    asyncio.run(main())
