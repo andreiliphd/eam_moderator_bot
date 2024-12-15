@@ -84,7 +84,7 @@ async def webhook_update(update: WebhookUpdate, context: CustomContext) -> None:
     await context.bot.send_message(chat_id=os.getenv("ADMIN_CHAT_ID"), text=text, parse_mode=ParseMode.HTML)
 
 
-async def main() -> None:
+async def app() -> None:
     """Set up PTB application and a web application for handling the incoming requests."""
     context_types = ContextTypes(context=CustomContext)
     # Here we set updater to None because we want our custom webhook server to handle the updates
@@ -101,15 +101,15 @@ async def main() -> None:
     await application.bot.set_webhook(url=f"{URL}/telegram", allowed_updates=Update.ALL_TYPES)
 
     # Set up webserver
-    app = Flask(__name__)
+    flask_app = Flask(__name__)
 
-    @app.post("/telegram")  # type: ignore[misc]
+    @flask_app.post("/telegram")  # type: ignore[misc]
     async def telegram() -> Response:
         """Handle incoming Telegram updates by putting them into the `update_queue`"""
         await application.update_queue.put(Update.de_json(data=request.json, bot=application.bot))
         return Response(status=HTTPStatus.OK)
 
-    @app.route("/submitpayload", methods=["GET", "POST"])  # type: ignore[misc]
+    @flask_app.route("/submitpayload", methods=["GET", "POST"])  # type: ignore[misc]
     async def custom_updates() -> Response:
         """
         Handle incoming webhook updates by also putting them into the `update_queue` if
@@ -129,7 +129,7 @@ async def main() -> None:
         await application.update_queue.put(WebhookUpdate(user_id=user_id, payload=payload))
         return Response(status=HTTPStatus.OK)
 
-    @app.get("/healthcheck")  # type: ignore[misc]
+    @flask_app.get("/healthcheck")  # type: ignore[misc]
     async def health() -> Response:
         """For the health endpoint, reply with a simple plain text message."""
         response = make_response("The bot is still running fine :)", HTTPStatus.OK)
@@ -138,7 +138,7 @@ async def main() -> None:
 
     webserver = uvicorn.Server(
         config=uvicorn.Config(
-            app=WsgiToAsgi(app),
+            app=WsgiToAsgi(flask_app),
             port=PORT,
             use_colors=False,
             host="127.0.0.1",
@@ -153,4 +153,4 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(app())
