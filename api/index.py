@@ -46,7 +46,7 @@ def do():
     values = r.mget(keys)
     for i in range(len(keys)):
         pass #markup.add(telebot.types.InlineKeyboardButton(text = values[i], callback_data = keys[i]), row_width = 1)
-    bot.send_message(chat_id = data['message']['chat']['id'], text = "Одобрите посты: ", reply_markup = markup_template)
+    bot.send_message(chat_id = 957931698, text = "Одобрите посты: ", reply_markup = markup_template)
     r.get(data['update_id'])
     return jsonify(data)
 
