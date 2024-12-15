@@ -9,22 +9,23 @@ from dotenv import load_dotenv
 from telebot.util import quick_markup
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton
 
-
 load_dotenv()  # take environment variables from .env.
+
+app = Flask(__name__)
 
 bot = telebot.TeleBot(os.getenv("API_TOKEN"))
 bot_2 = telebot.TeleBot(os.getenv("API_TOKEN_2"))
-app = Flask(__name__)
+
+r = redis.Redis(
+host=os.getenv("HOST"),
+port=6379,
+password=os.getenv("PASSWORD"),
+ssl=True
+)    
 
 @app.route('/', methods=['GET', 'POST'])
 def home(): 
     data = request.json
-    r = redis.Redis(
-    host=os.getenv("HOST"),
-    port=6379,
-    password=os.getenv("PASSWORD"),
-    ssl=True
-    )    
     chat = data['message']['chat']['id']
     try:
         r.set(data['update_id'], data['message']['from']['username'] + ' - ' + data['message']['text'])
@@ -36,16 +37,8 @@ def home():
 @app.route('/manage', methods=['GET', 'POST'])
 def do():
     data = request.json
-    r = redis.Redis(
-    host=os.getenv("HOST"),
-    port=6379,
-    password=os.getenv("PASSWORD"),
-    ssl=True
-    )    
-    r.set(time.time(), str(data))
     keys = r.keys('*')
     values = r.mget(keys)
-    result = []
     markup = telebot.types.InlineKeyboardMarkup()
     for i in range(len(keys)):
         btn_my_site= telebot.types.InlineKeyboardButton(text=values[i], callback_data=keys[i])
