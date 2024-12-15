@@ -1,5 +1,6 @@
 import pprint
 import redis
+import json
 from flask import Flask, request, jsonify
 import os
 import time
@@ -48,7 +49,7 @@ def do():
     for i in range(len(keys)):
         markup_template['inline_keyboard'].append([{"text": values[i], "callback_data": keys[i]}])
     markup_template['inline_keyboard'].append([{"text": "Удалить остальное", "callback_data": "delete_all"}])
-    bot_1.send_message(chat_id = data['message']['chat']['id'], text = "Одобрите посты: ", reply_markup = markup_template)
+    bot_1.send_message(chat_id = data['message']['chat']['id'], text = "Одобрите посты: ", reply_markup = json.dumps(markup_template))
     r.get(data['update_id'])
     return jsonify(data)
 
