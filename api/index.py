@@ -151,7 +151,7 @@ async def main() -> None:
         """For the health endpoint, reply with a simple plain text message."""
         return PlainTextResponse(content="The bot is still running fine :)")
 
-    starlette_app = Starlette(
+    app = Starlette(
         routes=[
             Route("/telegram", telegram, methods=["POST"]),
             Route("/healthcheck", health, methods=["GET"]),
@@ -160,7 +160,7 @@ async def main() -> None:
     )
     webserver = uvicorn.Server(
         config=uvicorn.Config(
-            app=starlette_app,
+            app=app,
             port=PORT,
             use_colors=False,
             host="0.0.0.0",
