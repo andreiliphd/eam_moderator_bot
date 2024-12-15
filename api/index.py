@@ -40,7 +40,7 @@ def do():
     password=os.getenv("PASSWORD"),
     ssl=True
     )    
-    r.set("internal_view", str(data))
+    r.set(time.time(), str(data))
     keys = r.keys('*')
     markup_template = '{"inline_keyboard":[[{"text":"Twitter","url":"twitter.com"},{"text":"Facebook","url":"facebook.com"}],[{"text":"Back","callback_data":"whatever"}]]}'
     values = r.mget(keys)
