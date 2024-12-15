@@ -1,6 +1,20 @@
+#!/usr/bin/env python
+# This program is dedicated to the public domain under the CC0 license.
+# pylint: disable=import-error,unused-argument
+"""
+Simple example of a bot that uses a custom webhook setup and handles custom updates.
+For the custom webhook setup, the libraries `flask`, `asgiref` and `uvicorn` are used. Please
+install them as `pip install flask[async]~=2.3.2 uvicorn~=0.23.2 asgiref~=3.7.2`.
+Note that any other `asyncio` based web server framework can be used for a custom webhook setup
+just as well.
+
+Usage:
+Set bot Token, URL, admin CHAT_ID and PORT after the imports.
+You may also need to change the `listen` value in the uvicorn configuration to match your setup.
+Press Ctrl-C on the command line or send a signal to the process to stop the bot.
+"""
 import asyncio
 import html
-import os
 import logging
 from dataclasses import dataclass
 from http import HTTPStatus
@@ -19,6 +33,7 @@ from telegram.ext import (
     ExtBot,
     TypeHandler,
 )
+import os
 
 # Enable logging
 logging.basicConfig(
@@ -30,10 +45,10 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 # Define configuration constants
-# URL = "https://domain.tld"
-# ADMIN_CHAT_ID = 957931698
-# PORT = 8000
-# TOKEN = "123:ABC"  # nosec B105
+URL = os.getenv("URL")
+ADMIN_CHAT_ID = os.getenv("ADMIN_CHAT_ID")
+PORT = os.getenv("PORT")
+TOKEN = os.getenv("TOKEN")  # nosec B105
 
 
 @dataclass
@@ -63,9 +78,9 @@ class CustomContext(CallbackContext[ExtBot, dict, dict, dict]):
 
 async def start(update: Update, context: CustomContext) -> None:
     """Display a message with instructions on how to use this bot."""
-    payload_url = html.escape(f"{os.getenv("URL")}/submitpayload?user_id=<your user id>&payload=<payload>")
+    payload_url = html.escape(f"{URL}/submitpayload?user_id=<your user id>&payload=<payload>")
     text = (
-        f"To check if the bot is still running, call <code>{os.getenv("URL")}/healthcheck</code>.\n\n"
+        f"To check if the bot is still running, call <code>{URL}/healthcheck</code>.\n\n"
         f"To post a custom update, call <code>{payload_url}</code>."
     )
     await update.message.reply_html(text=text)
@@ -81,7 +96,7 @@ async def webhook_update(update: WebhookUpdate, context: CustomContext) -> None:
         f"The user {chat_member.user.mention_html()} has sent a new payload. "
         f"So far they have sent the following payloads: \n\n• <code>{combined_payloads}</code>"
     )
-    await context.bot.send_message(chat_id=os.getenv("ADMIN_CHAT_ID"), text=text, parse_mode=ParseMode.HTML)
+    await context.bot.send_message(chat_id=ADMIN_CHAT_ID, text=text, parse_mode=ParseMode.HTML)
 
 
 async def main() -> None:
@@ -90,7 +105,7 @@ async def main() -> None:
     # Here we set updater to None because we want our custom webhook server to handle the updates
     # and hence we don't need an Updater instance
     application = (
-        Application.builder().token(os.getenv("TOKEN")).updater(None).context_types(context_types).build()
+        Application.builder().token(TOKEN).updater(None).context_types(context_types).build()
     )
 
     # register handlers
@@ -98,7 +113,7 @@ async def main() -> None:
     application.add_handler(TypeHandler(type=WebhookUpdate, callback=webhook_update))
 
     # Pass webhook settings to telegram
-    await application.bot.set_webhook(url=f"{os.getenv("URL")}/telegram", allowed_updates=Update.ALL_TYPES)
+    await application.bot.set_webhook(url=f"{URL}/telegram", allowed_updates=Update.ALL_TYPES)
 
     # Set up webserver
     flask_app = Flask(__name__)
@@ -139,9 +154,9 @@ async def main() -> None:
     webserver = uvicorn.Server(
         config=uvicorn.Config(
             app=WsgiToAsgi(flask_app),
-            port=os.getenv("PORT"),
+            port=PORT,
             use_colors=False,
-            host="0.0.0.0",
+            host="127.0.0.1",
         )
     )
 
