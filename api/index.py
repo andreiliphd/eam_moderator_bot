@@ -46,12 +46,12 @@ def do():
     keys = r.keys('*')
     markup_template = {"inline_keyboard":[]}
     values = r.mget(keys)
-    for i in range(len(keys)):
-        markup_template['inline_keyboard'].append([{"text": values[i], "callback_data": keys[i]}])
-    markup_template['inline_keyboard'].append([{"text": "Удалить остальное", "callback_data": "delete_all"}])
-    apci = json.dumps(markup_template).encode('utf-8')
-    bot_1.send_message(chat_id = data['message']['chat']['id'], text = "Одобрите посты: ", reply_markup = apci)
-    r.get(data['update_id'])
+    #for i in range(len(keys)):
+    #    markup_template['inline_keyboard'].append([{"text": values[i], "callback_data": keys[i]}])
+    markup = telebot.types.InlineKeyboardMarkup()
+    btn_my_site= telebot.types.InlineKeyboardButton(text='Наш сайт', url='https://habrahabr.ru')
+    markup.add(btn_my_site)
+    bot_1.send_message(chat_id = data['message']['chat']['id'], text = "Одобрите посты: ", reply_markup = markup)
     return jsonify(data)
 
 if __name__ == '__main__':
