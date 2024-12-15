@@ -107,6 +107,7 @@ async def main() -> None:
     application = (
         Application.builder().token(TOKEN).updater(None).context_types(context_types).build()
     )
+    app = application
 
     # register handlers
     application.add_handler(CommandHandler("start", start))
@@ -116,7 +117,7 @@ async def main() -> None:
     await application.bot.set_webhook(url=f"{URL}/telegram", allowed_updates=Update.ALL_TYPES)
 
     # Set up webserver
-    app = Flask(__name__)
+    flask_app = Flask(__name__)
 
     @flask_app.post("/telegram")  # type: ignore[misc]
     async def telegram() -> Response:
@@ -153,7 +154,7 @@ async def main() -> None:
 
     webserver = uvicorn.Server(
         config=uvicorn.Config(
-            app=WsgiToAsgi(app),
+            app=WsgiToAsgi(flask_app),
             port=PORT,
             use_colors=False,
             host="0.0.0.0",
