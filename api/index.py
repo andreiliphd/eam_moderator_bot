@@ -42,11 +42,12 @@ def do():
     )    
     r.set("internal_view", str(data))
     keys = r.keys('*')
-    markup = telebot.types.InlineKeyboardMarkup()
+    markup_template = '{"inline_keyboard":[[{"text":"Twitter","url":"https:\\/\\/twitter.com"},{"text":"Facebook","url":"https:\\/\\/facebook.com"}],[{"text":"Back","callback_data":"whatever"}]]}'
+    markup = []
     values = r.mget(keys)
     for i in range(len(keys)):
         markup.add(telebot.types.InlineKeyboardButton(text = values[i], callback_data = keys[i]), row_width = 1)
-    bot.send_message(chat_id = data['message']['chat']['id'], text = "Одобрите посты: ", reply_markup = markup)
+    bot.send_message(chat_id = data['message']['chat']['id'], text = "Одобрите посты: ", reply_markup = markup_template)
     r.get(data['update_id'])
     return jsonify(data)
 
