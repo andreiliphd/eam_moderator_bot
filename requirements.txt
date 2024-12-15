@@ -1,6 +1,8 @@
-Flask==3.0.3
 python-dotenv
 pprint3x
 upstash-redis
 pyTelegramBotAPI
 redis
+flask[async]~=2.3.2
+uvicorn~=0.23.2
+asgiref~=3.7.2
