@@ -26,7 +26,7 @@ from flask import Flask, Response, abort, make_response, request
 from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import (
-    Application,
+    app,
     CallbackContext,
     CommandHandler,
     ContextTypes,
@@ -69,11 +69,11 @@ class CustomContext(CallbackContext[ExtBot, dict, dict, dict]):
     def from_update(
         cls,
         update: object,
-        application: "Application",
+        app: "app",
     ) -> "CustomContext":
         if isinstance(update, WebhookUpdate):
-            return cls(application=application, user_id=update.user_id)
-        return super().from_update(update, application)
+            return cls(app=app, user_id=update.user_id)
+        return super().from_update(update, app)
 
 
 async def start(update: Update, context: CustomContext) -> None:
@@ -100,27 +100,27 @@ async def webhook_update(update: WebhookUpdate, context: CustomContext) -> None:
 
 
 async def main() -> None:
-    """Set up PTB application and a web application for handling the incoming requests."""
+    """Set up PTB app and a web app for handling the incoming requests."""
     context_types = ContextTypes(context=CustomContext)
     # Here we set updater to None because we want our custom webhook server to handle the updates
     # and hence we don't need an Updater instance
-    application = (
-        Application.builder().token(TOKEN).updater(None).context_types(context_types).build()
+    app = (
+        app.builder().token(TOKEN).updater(None).context_types(context_types).build()
     )
     # register handlers
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(TypeHandler(type=WebhookUpdate, callback=webhook_update))
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(TypeHandler(type=WebhookUpdate, callback=webhook_update))
 
     # Pass webhook settings to telegram
-    await application.bot.set_webhook(url=f"{URL}/telegram", allowed_updates=Update.ALL_TYPES)
+    await app.bot.set_webhook(url=f"{URL}/telegram", allowed_updates=Update.ALL_TYPES)
 
     # Set up webserver
-    app = Flask(__name__)
+    flask_app = Flask(__name__)
 
     @flask_app.post("/telegram")  # type: ignore[misc]
     async def telegram() -> Response:
         """Handle incoming Telegram updates by putting them into the `update_queue`"""
-        await application.update_queue.put(Update.de_json(data=request.json, bot=application.bot))
+        await app.update_queue.put(Update.de_json(data=request.json, bot=app.bot))
         return Response(status=HTTPStatus.OK)
 
     @flask_app.route("/submitpayload", methods=["GET", "POST"])  # type: ignore[misc]
@@ -140,7 +140,7 @@ async def main() -> None:
         except ValueError:
             abort(HTTPStatus.BAD_REQUEST, "The `user_id` must be a string!")
 
-        await application.update_queue.put(WebhookUpdate(user_id=user_id, payload=payload))
+        await app.update_queue.put(WebhookUpdate(user_id=user_id, payload=payload))
         return Response(status=HTTPStatus.OK)
 
     @flask_app.get("/healthcheck")  # type: ignore[misc]
@@ -152,18 +152,18 @@ async def main() -> None:
 
     webserver = uvicorn.Server(
         config=uvicorn.Config(
-            app=WsgiToAsgi(app),
+            app=WsgiToAsgi(flask_app),
             port=PORT,
             use_colors=False,
             host="0.0.0.0",
         )
     )
 
-    # Run application and webserver together
-    async with application:
-        await application.start()
+    # Run app and webserver together
+    async with app:
+        await app.start()
         await webserver.serve()
-        await application.stop()
+        await app.stop()
 
 
 if __name__ == "__main__":
