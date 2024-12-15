@@ -116,7 +116,7 @@ async def main() -> None:
     await application.bot.set_webhook(url=f"{URL}/telegram", allowed_updates=Update.ALL_TYPES)
 
     # Set up webserver
-    flask_app = Flask(__name__)
+    app = Flask(__name__)
 
     @flask_app.post("/telegram")  # type: ignore[misc]
     async def telegram() -> Response:
@@ -153,10 +153,10 @@ async def main() -> None:
 
     webserver = uvicorn.Server(
         config=uvicorn.Config(
-            app=WsgiToAsgi(flask_app),
+            app=WsgiToAsgi(app),
             port=PORT,
             use_colors=False,
-            host="127.0.0.1",
+            host="0.0.0.0",
         )
     )
 
