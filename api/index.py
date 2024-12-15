@@ -26,7 +26,7 @@ from flask import Flask, Response, abort, make_response, request
 from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import (
-    app,
+    Application,
     CallbackContext,
     CommandHandler,
     ContextTypes,
@@ -69,11 +69,11 @@ class CustomContext(CallbackContext[ExtBot, dict, dict, dict]):
     def from_update(
         cls,
         update: object,
-        app: "app",
+        application: "Application",
     ) -> "CustomContext":
         if isinstance(update, WebhookUpdate):
-            return cls(app=app, user_id=update.user_id)
-        return super().from_update(update, app)
+            return cls(application=application, user_id=update.user_id)
+        return super().from_update(update, application)
 
 
 async def start(update: Update, context: CustomContext) -> None:
