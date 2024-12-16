@@ -63,4 +63,4 @@ app.add_handler(CommandHandler("help", help_command))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
 # Run the bot until the user presses Ctrl-C
-app.run_webhook(listen='0.0.0.0', port=80, webhook_url='https://eammoderatorbot-eam.vercel.app')
+app.run_webhook(listen='0.0.0.0', port=3000, webhook_url='https://eammoderatorbot-eam.vercel.app')
