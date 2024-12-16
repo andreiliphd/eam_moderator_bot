@@ -44,4 +44,4 @@ async def start(update, _: ContextTypes.DEFAULT_TYPE):
 
 ptb.add_handler(CommandHandler("start", start))
 
-uvicorn.run(app, host="0.0.0.0", port=8000)
+uvicorn.run(app, host="0.0.0.0")
