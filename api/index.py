@@ -19,7 +19,7 @@ def telegram_url_builder(method, **kwargs):
     for k, val in kwargs.items():
         print("%s == %s" % (k, val))
         basic += str(k) + "=" + str(val) + "&"
-    basic = basic[-1]
+    basic = basic[0:len(basic) - 1]
     logger.log(logging.WARNING, str(basic)) 
     return basic
 
