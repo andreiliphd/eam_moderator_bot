@@ -18,7 +18,7 @@ def telegram_url_builder(method, **kwargs):
     basic = "https://api.telegram.org/bot" + os.getenv("TOKEN") + "/" + str(method) + "?"
     for k, val in kwargs.items():
         print("%s == %s" % (k, val))
-        basic += k + "=" + val + "&"
+        basic += str(k) + "=" + str(val) + "&"
     basic = basic[-1]
     logger.log(logging.WARNING, str(basic)) 
     return basic
