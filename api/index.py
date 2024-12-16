@@ -1,6 +1,5 @@
 import os
 import logging
-from telegram import Bot
 from sanic import Sanic
 from sanic.response import text
 
@@ -16,7 +15,6 @@ logging.getLogger("httpx").setLevel(logging.INFO)
 
 logger = logging.getLogger(__name__)
 
-bot = Bot(token=os.getenv("TOKEN"))
 
 @app.get("/")
 async def hello_world(request):
