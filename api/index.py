@@ -1,5 +1,6 @@
 # main.py
 import os
+import uvicorn
 
 from contextlib import asynccontextmanager
 from http import HTTPStatus
@@ -42,3 +43,5 @@ async def start(update, _: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("starting...")
 
 ptb.add_handler(CommandHandler("start", start))
+
+uvicorn.run(app, host="0.0.0.0", port=80)
