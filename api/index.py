@@ -27,4 +27,4 @@ def telegram_url_builder(method, **kwargs):
 def entry():
     data = request.json
     logger.log(logging.WARNING, str(data))
-    return str(request.json)
+    return {"text": str(request.json)}
