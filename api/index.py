@@ -51,21 +51,16 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(update.message.text)
 
 
-def main() -> None:
-    """Start the bot."""
-    # Create the Application and pass it your bot's token.
-    app= Application.builder().token(os.getenv("TOKEN")).build()
+"""Start the bot."""
+# Create the Application and pass it your bot's token.
+app= Application.builder().token(os.getenv("TOKEN")).build()
 
-    # on different commands - answer in Telegram
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("help", help_command))
+# on different commands - answer in Telegram
+app.add_handler(CommandHandler("start", start))
+app.add_handler(CommandHandler("help", help_command))
 
-    # on non command i.e message - echo the message on Telegram
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
+# on non command i.e message - echo the message on Telegram
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
-    # Run the bot until the user presses Ctrl-C
-    app.run_webhook(listen='0.0.0.0', port=80, webhook_url='https://eammoderatorbot-git-main-eam.vercel.app/')
-
-
-if __name__ == "__main__":
-    main()
+# Run the bot until the user presses Ctrl-C
+app.run_webhook(listen='0.0.0.0', port=80, webhook_url='https://eammoderatorbot-git-main-eam.vercel.app/')
