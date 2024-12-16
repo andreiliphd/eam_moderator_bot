@@ -1,41 +1,24 @@
 #!/usr/bin/env python
+# pylint: disable=unused-argument
 # This program is dedicated to the public domain under the CC0 license.
-# pylint: disable=import-error,unused-argument
+
 """
-Simple example of a bot that uses a custom webhook setup and handles custom updates.
-For the custom webhook setup, the libraries `starlette` and `uvicorn` are used. Please install
-them as `pip install starlette~=0.20.0 uvicorn~=0.23.2`.
-Note that any other `asyncio` based web server framework can be used for a custom webhook setup
-just as well.
+Simple Bot to reply to Telegram messages.
+
+First, a few handler functions are defined. Then, those functions are passed to
+the Application and registered at their respective places.
+Then, the bot is started and runs until we press Ctrl-C on the command line.
 
 Usage:
-Set bot Token, URL, admin CHAT_ID and PORT after the imports.
-You may also need to change the `listen` value in the uvicorn configuration to match your setup.
-Press Ctrl-C on the command line or send a signal to the process to stop the bot.
+Basic Echobot example, repeats messages.
+Press Ctrl-C on the command line or send a signal to the process to stop the
+bot.
 """
-import asyncio
-import html
+
 import logging
 import os
-from dataclasses import dataclass
-from http import HTTPStatus
-
-import uvicorn
-from starlette.applications import Starlette
-from starlette.requests import Request
-from starlette.responses import PlainTextResponse, Response
-from starlette.routing import Route
-
-from telegram import Update
-from telegram.constants import ParseMode
-from telegram.ext import (
-    Application,
-    CallbackContext,
-    CommandHandler,
-    ContextTypes,
-    ExtBot,
-    TypeHandler,
-)
+from telegram import ForceReply, Update
+from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 
 # Enable logging
 logging.basicConfig(
@@ -46,133 +29,43 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 
 logger = logging.getLogger(__name__)
 
-# Define configuration constants
-URL = os.getenv("URL")
-ADMIN_CHAT_ID = os.getenv("ADMIN_CHAT_ID")
-PORT = os.getenv("PORT")
-TOKEN = os.getenv("TOKEN")
 
-
-@dataclass
-class WebhookUpdate:
-    """Simple dataclass to wrap a custom update type"""
-
-    user_id: int
-    payload: str
-
-
-class CustomContext(CallbackContext[ExtBot, dict, dict, dict]):
-    """
-    Custom CallbackContext class that makes `user_data` available for updates of type
-    `WebhookUpdate`.
-    """
-
-    @classmethod
-    def from_update(
-        cls,
-        update: object,
-        application: "Application",
-    ) -> "CustomContext":
-        if isinstance(update, WebhookUpdate):
-            return cls(application=application, user_id=update.user_id)
-        return super().from_update(update, application)
-
-
-async def start(update: Update, context: CustomContext) -> None:
-    """Display a message with instructions on how to use this bot."""
-    payload_url = html.escape(f"{URL}/submitpayload?user_id=<your user id>&payload=<payload>")
-    text = (
-        f"To check if the bot is still running, call <code>{URL}/healthcheck</code>.\n\n"
-        f"To post a custom update, call <code>{payload_url}</code>."
-    )
-    await update.message.reply_html(text=text)
-
-
-async def webhook_update(update: WebhookUpdate, context: CustomContext) -> None:
-    """Handle custom updates."""
-    chat_member = await context.bot.get_chat_member(chat_id=update.user_id, user_id=update.user_id)
-    payloads = context.user_data.setdefault("payloads", [])
-    payloads.append(update.payload)
-    combined_payloads = "</code>\n• <code>".join(payloads)
-    text = (
-        f"The user {chat_member.user.mention_html()} has sent a new payload. "
-        f"So far they have sent the following payloads: \n\n• <code>{combined_payloads}</code>"
-    )
-    await context.bot.send_message(chat_id=ADMIN_CHAT_ID, text=text, parse_mode=ParseMode.HTML)
-
-
-async def main() -> None:
-    """Set up PTB application and a web application for handling the incoming requests."""
-    context_types = ContextTypes(context=CustomContext)
-    # Here we set updater to None because we want our custom webhook server to handle the updates
-    # and hence we don't need an Updater instance
-    application = (
-        Application.builder().token(TOKEN).updater(None).context_types(context_types).build()
+# Define a few command handlers. These usually take the two arguments update and
+# context.
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Send a message when the command /start is issued."""
+    user = update.effective_user
+    await update.message.reply_html(
+        rf"Hi {user.mention_html()}!",
+        reply_markup=ForceReply(selective=True),
     )
 
-    # register handlers
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(TypeHandler(type=WebhookUpdate, callback=webhook_update))
 
-    # Pass webhook settings to telegram
-    await application.bot.set_webhook(url=f"{URL}/telegram", allowed_updates=Update.ALL_TYPES)
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Send a message when the command /help is issued."""
+    await update.message.reply_text("Help!")
 
-    # Set up webserver
-    async def telegram(request: Request) -> Response:
-        """Handle incoming Telegram updates by putting them into the `update_queue`"""
-        await application.update_queue.put(
-            Update.de_json(data=await request.json(), bot=application.bot)
-        )
-        return Response()
 
-    async def custom_updates(request: Request) -> PlainTextResponse:
-        """
-        Handle incoming webhook updates by also putting them into the `update_queue` if
-        the required parameters were passed correctly.
-        """
-        try:
-            user_id = int(request.query_params["user_id"])
-            payload = request.query_params["payload"]
-        except KeyError:
-            return PlainTextResponse(
-                status_code=HTTPStatus.BAD_REQUEST,
-                content="Please pass both `user_id` and `payload` as query parameters.",
-            )
-        except ValueError:
-            return PlainTextResponse(
-                status_code=HTTPStatus.BAD_REQUEST,
-                content="The `user_id` must be a string!",
-            )
+async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Echo the user message."""
+    await update.message.reply_text(update.message.text)
 
-        await application.update_queue.put(WebhookUpdate(user_id=user_id, payload=payload))
-        return PlainTextResponse("Thank you for the submission! It's being forwarded.")
 
-    async def health(_: Request) -> PlainTextResponse:
-        """For the health endpoint, reply with a simple plain text message."""
-        return PlainTextResponse(content="The bot is still running fine :)")
+def main() -> None:
+    """Start the bot."""
+    # Create the Application and pass it your bot's token.
+    app= Application.builder().token(os.getenv("TOKEN")).build()
 
-    app = Starlette(
-        routes=[
-            Route("/telegram", telegram, methods=["POST"]),
-            Route("/healthcheck", health, methods=["GET"]),
-            Route("/submitpayload", custom_updates, methods=["POST", "GET"]),
-        ]
-    )
-    webserver = uvicorn.Server(
-        config=uvicorn.Config(
-            app=app,
-            port=PORT,
-            use_colors=False,
-            host="0.0.0.0",
-        )
-    )
+    # on different commands - answer in Telegram
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("help", help_command))
 
-    # Run application and webserver together
-    async with application:
-        await application.start()
-        await webserver.serve()
-        await application.stop()
+    # on non command i.e message - echo the message on Telegram
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
+
+    # Run the bot until the user presses Ctrl-C
+    app.run_webhook(listen='0.0.0.0', port=80, webhook_url='https://eammoderatorbot-git-main-eam.vercel.app/')
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
