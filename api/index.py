@@ -1,4 +1,5 @@
 # main.py
+import os
 
 from contextlib import asynccontextmanager
 from http import HTTPStatus
@@ -11,7 +12,7 @@ from fastapi import FastAPI, Request, Response
 ptb = (
     Application.builder()
     .updater(None)
-    .token(<your-bot-token>) # replace <your-bot-token>
+    .token(os.getenv("TOKEN")) # replace <your-bot-token>
     .read_timeout(7)
     .get_updates_read_timeout(42)
     .build()
@@ -19,7 +20,7 @@ ptb = (
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    await ptb.bot.setWebhook(<your-webhook-url>) # replace <your-webhook-url>
+    await ptb.bot.setWebhook(os.getenv("URL")) # replace <your-webhook-url>
     async with ptb:
         await ptb.start()
         yield
