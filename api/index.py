@@ -1,70 +1,43 @@
-#!/usr/bin/env python
-# pylint: disable=unused-argument
-# This program is dedicated to the public domain under the CC0 license.
+# main.py
 
-"""
-Simple Bot to reply to Telegram messages.
+from contextlib import asynccontextmanager
+from http import HTTPStatus
+from telegram import Update
+from telegram.ext import Application, CommandHandler
+from telegram.ext._contexttypes import ContextTypes
+from fastapi import FastAPI, Request, Response
 
-First, a few handler functions are defined. Then, those functions are passed to
-the Application and registered at their respective places.
-Then, the bot is started and runs until we press Ctrl-C on the command line.
-
-Usage:
-Basic Echobot example, repeats messages.
-Press Ctrl-C on the command line or send a signal to the process to stop the
-bot.
-"""
-
-import logging
-import os
-from telegram import ForceReply, Update
-from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
-
-# Enable logging
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+# Initialize python telegram bot
+ptb = (
+    Application.builder()
+    .updater(None)
+    .token(<your-bot-token>) # replace <your-bot-token>
+    .read_timeout(7)
+    .get_updates_read_timeout(42)
+    .build()
 )
-# set higher logging level for httpx to avoid all GET and POST requests being logged
-logging.getLogger("httpx").setLevel(logging.WARNING)
 
-logger = logging.getLogger(__name__)
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    await ptb.bot.setWebhook(<your-webhook-url>) # replace <your-webhook-url>
+    async with ptb:
+        await ptb.start()
+        yield
+        await ptb.stop()
 
+# Initialize FastAPI app (similar to Flask)
+app = FastAPI(lifespan=lifespan)
 
-# Define a few command handlers. These usually take the two arguments update and
-# context.
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+@app.post("/")
+async def process_update(request: Request):
+    req = await request.json()
+    update = Update.de_json(req, ptb.bot)
+    await ptb.process_update(update)
+    return Response(status_code=HTTPStatus.OK)
+
+# Example handler
+async def start(update, _: ContextTypes.DEFAULT_TYPE):
     """Send a message when the command /start is issued."""
-    user = update.effective_user
-    await update.message.reply_html(
-        rf"Hi {user.mention_html()}!",
-        reply_markup=ForceReply(selective=True),
-    )
+    await update.message.reply_text("starting...")
 
-
-async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Send a message when the command /help is issued."""
-    await update.message.reply_text("Help!")
-
-
-async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Echo the user message."""
-    await update.message.reply_text(update.message.text)
-
-def main() -> None:
-
-    """Start the bot."""
-    # Create the Application and pass it your bot's token.
-    app = Application.builder().token(os.getenv("TOKEN")).build()
-
-    # on different commands - answer in Telegram
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("help", help_command))
-
-    # on non command i.e message - echo the message on Telegram
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
-
-    # Run the bot until the user presses Ctrl-C
-    app.run_webhook(listen='0.0.0.0', port=8080, webhook_url='https://eammoderatorbot-eam.vercel.app')
-
-if __name__ == "__main__":
-    main()
+ptb.add_handler(CommandHandler("start", start))
