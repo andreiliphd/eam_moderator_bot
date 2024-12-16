@@ -13,7 +13,7 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 
 logger = logging.getLogger(__name__)
 
-def telegram_url_builder(method, **kwargs)  
+def telegram_url_builder(method, **kwargs):
     basic = "https://api.telegram.org/bot" + os.getenv("TOKEN") + "/" + str(method) + "?"
     for k, val in kwargs.items():
         print("%s == %s" % (k, val))
