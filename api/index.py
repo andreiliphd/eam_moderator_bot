@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 redis = Redis(url=os.getenv("HOST_REDIS"), token=os.getenv("PASSWORD_REDIS"))
 
-def telegram_url_builder(method, **kwargs):
+def telegram_constructor(method, **kwargs):
     basic = "https://api.telegram.org/bot" + os.getenv("TOKEN") + "/" + str(method) + "?"
     for k, val in kwargs.items():
         print("%s == %s" % (k, val))
@@ -30,7 +30,8 @@ def telegram_url_builder(method, **kwargs):
 @app.route("/", methods = ["GET", "POST"])
 def entry():
     data = request.json
+    logger.log(logging.WARNING, "entry " + str(data))
     redis.set(data['update_id'], data['message']['from']['username'] + " - " + data['message']['text'])
-    telegram_url_builder("deleteMessage", chat_id=data["message"]["chat"]["id"], message_id = data['message']['message_id'])
+    telegram_constructor("deleteMessage", chat_id=data["message"]["chat"]["id"], message_id = data['message']['message_id'])
     logger.log(logging.WARNING, str(data))
     return {"text": str(data)}
