@@ -1,4 +1,5 @@
 import os
+import requests
 import logging
 from flask import Flask, request
 from upstash_redis import Redis
@@ -20,6 +21,8 @@ def telegram_url_builder(method, **kwargs):
         print("%s == %s" % (k, val))
         basic += str(k) + "=" + str(val) + "&"
     basic = basic[0:len(basic) - 1]
+    r = requests.get(basic)
+    logger.log(logging.WARNING, str(r)) 
     logger.log(logging.WARNING, str(basic)) 
     return basic
 
