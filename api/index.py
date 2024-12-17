@@ -31,7 +31,8 @@ def telegram_constructor(method, **kwargs):
 def entry():
     data = request.json
     logger.log(logging.WARNING, "entry " + str(data))
-    redis.set(data['update_id'], data['message']['from']['username'] + " - " + data['message']['text'])
-    telegram_constructor("deleteMessage", chat_id=data["message"]["chat"]["id"], message_id = data['message']['message_id'])
-    logger.log(logging.WARNING, str(data))
+    if ("message" in data.keys()) and  ("text" in data["message"].keys()):
+        redis.set(data['update_id'], data['message']['from']['username'] + " - " + data['message']['text'])
+        telegram_constructor("deleteMessage", chat_id=data["message"]["chat"]["id"], message_id = data['message']['message_id'])
+        logger.log(logging.WARNING, str(data))
     return {"text": str(data)}
